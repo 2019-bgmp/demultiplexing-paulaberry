@@ -15,7 +15,5 @@ conda deactivate
 conda deactivate
 conda activate bgmp_py3
 
-module purge
-module load
 
-/usr/bin/time -v demultiplex.py \
+/usr/bin/time -v ./demultiplex.py
