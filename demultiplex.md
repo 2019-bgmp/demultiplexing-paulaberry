@@ -19,25 +19,28 @@ a) Table of files
 b) Histograms:
 Data is contained in demultiplex.out. The average quality score for each file is used as the cut off.
 
-Average quality score cut off:
+Sequence 1 average quality score cut off:
 
 ![Sequence 1 Histogram](seq1_histogram.png "Sequence 1 Histogram")
 
 
-Average quality score cut off:
+Index 1 average quality score cut off:
 
 ![Index 1 Histogram](index1_histogram.png "Index 1 Histogram")
 
 
-Average quality score cut off:
+Sequence 2 average quality score cut off:
 
 ![Sequence 2 Histogram](seq2_histogram.png "Sequence 2 Histogram")
 
 
-Average quality score cut off:
+Index 2 average quality score cut off:
 
 ![Index 2 Histogram](index2_histogram.png "Index 2 Histogram")
 
 
 c) 7304664 indexes were sequenced with an "N" base call. I used n_index.sh to wrap the following command in slurm script.
+
 ```$ /usr/bin/time -v zcat /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz | awk 'NR % 4 == 2' | grep '[N]\+' | wc -l > n_index_count.txt```
+
+2. 

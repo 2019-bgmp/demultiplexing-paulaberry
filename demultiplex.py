@@ -96,6 +96,54 @@ create_histogram(index2_qscores, "Index 2 Quality Scores Histogram", "index2_his
 plt.savefig:("index2.png")
 plt.close()
 
+print("Sequence 1 Histogram Values")
+print("Nucleotide position  Mean quality score")
+s1_counter = 0
+s1_sum = 0
+for key in sequence1_qscores:
+    print(str(key) + "  " + str(sequence1_qscores[key]))
+    s1_sum = s1_sum + sequence1_qscores[key]
+    s1_counter = s1_counter + 1
+s1_mean = s1_sum / s1_counter
+print("Average quality score for Sequence 1: " + str(s1_mean))
+print()
+
+print("Index 1 Histogram Values")
+print("Nucleotide position  Mean quality score")
+i1_counter = 0
+i1_sum = 0
+for key in index1_qscores:
+    print(str(key) + "  " + str(index1_qscores[key]))
+    i1_sum = i1_sum + index1_qscores[key]
+    i1_counter = i1_counter + 1
+i1_mean = i1_sum / i1_counter
+print("Average quality score for Index 1: " + str(i1_mean))
+print()
+
+print("Sequence 2 Histogram Values")
+print("Nucleotide position  Mean quality score")
+s2_counter = 0
+s2_sum = 0
+for key in sequence2_qscores:
+    print(str(key) + "  " + str(sequence2_qscores[key]))
+    s2_sum = s2_sum + sequence2_qscores[key]
+    s2_counter = s2_counter + 1
+s2_mean = s2_sum / s2_counter
+print("Average quality score for Sequence 2: " + str(s2_mean))
+print()
+
+print("Index 2 Histogram Values")
+print("Nucleotide position  Mean quality score")
+i2_counter = 0
+i2_sum = 0
+for key in index2_qscores:
+    print(str(key) + "  " + str(index2_qscores[key]))
+    i2_sum = i2_sum + index2_qscores[key]
+    i2_counter = i2_counter + 1
+i2_mean = i2_sum / i2_counter
+print("Average quality score for Index 2: " + str(i2_mean))
+print()
+
 sequence1.close()
 index1.close()
 sequence2.close()
