@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
 import gzip
-#import numpy as np
+import numpy as np
 import math
 import matplotlib.pyplot as plt
+import argparse
+
+def get_args():
+    """Function to pass in filenames to demultiplex."""
+    getfiles = argparse.ArgumentParser(description="A program demultiplex dual-indexed fastq file reads.")
+    getfiles.add_argument("-iR1", "--indexR1", help = "read 1 index fastq file", required = True)
+    getfiles.add_argument("-iR2", "--indexR2", help = "read 2 index fastq file", required = True)
+    getfiles.add_argument("-sR1", "--sequenceR1", help = "read 1 sequence fastq file", required = True)
+    getfiles.add_argument("-sR2", "--sequenceR2", help = "read 2 sequence fastq file", required = True)
+    return getfiles.parse_args()
+args = get_args()
+
+R1index = str(args.indexR1)
+R2index = str(args.indexR2)
+R1sequence = str(args.sequenceR1)
+R2sequence = str(args.sequenceR2)
 
 def convert_phred(letter):
     '''A function to convert a Phred 33 score to a quality score value.'''
@@ -54,16 +70,15 @@ def create_histogram(dictionary, title, figurename):
 
 
 # actual fast q files to process
-sequence1 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R1_001.fastq.gz", "rt")
-index1 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz", "rt")
-sequence2 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R4_001.fastq.gz", "rt")
-index2 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz", "rt")
+#sequence1 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R1_001.fastq.gz", "rt")
+#index1 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz", "rt")
+#sequence2 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R4_001.fastq.gz", "rt")
+#index2 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz", "rt")
 
-# test fast q files to process
-#sequence1 = gzip.open("/mnt/c/Users/Paula/Documents/BGMP/Bi622/demultiplexing-paulaberry/test_R1.fastq.gz", "rt")
-#index1 = gzip.open("/mnt/c/Users/Paula/Documents/BGMP/Bi622/demultiplexing-paulaberry/test_R2.fastq.gz", "rt")
-#sequence2 = gzip.open("/mnt/c/Users/Paula/Documents/BGMP/Bi622/demultiplexing-paulaberry/test_R4.fastq.gz", "rt")
-#index2 = gzip.open("/mnt/c/Users/Paula/Documents/BGMP/Bi622/demultiplexing-paulaberry/test_R3.fastq.gz", "rt")
+index1 = gzip.open(R1index, "rt")
+index2 = gzip.open(R2index, "rt")
+sequence1 = gzip.open(R1sequence, "rt")
+sequence2 = gzip.open(R2sequence, "rt")
 
 # qscore lists for each file
 sequence1_qscores = {}
