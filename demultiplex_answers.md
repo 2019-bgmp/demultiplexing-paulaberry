@@ -48,15 +48,15 @@ c) 7304664 indexes were sequenced with an "N" base call. I used n_index.sh to wr
 
 2. Algorithm written in pseudocode is available on [demultiplex_algorithm.txt](demultiplex_algorithm.txt).
 <list>Test input files:
-<ul>[testR1index.fastq](testR1index.fastq)
-<ul>[testR2index.fastq](testR2index.fastq)
-<ul>[testR1sequence.fastq](testR1sequence.fastq)
-<ul>[testR2sequence.fastq](testR2sequence.fastq)</list>
+*[testR1index.fastq](testR1index.fastq)
+*[testR2index.fastq](testR2index.fastq)
+*[testR1sequence.fastq](testR1sequence.fastq)
+*[testR2sequence.fastq](testR2sequence.fastq)</list>
 
 <list>Test output files:
-<ul>[testR1dualmatched.fastq](testR1dualmatched.fastq)
-<ul>[testR2dualmatched.fastq](testR2dualmatched.fastq)
-<ul>[testR1unknown.fastq](testR1unknown.fastq)
-<ul>[testR2unknown.fastq](testR2unknown.fastq)
-<ul>[testR1hopped.fastq](testR1hopped.fastq)
-<ul>[testR2hopped.fastq](testR2hopped.fastq)</list>
+*[testR1dualmatched.fastq](testR1dualmatched.fastq)
+*[testR2dualmatched.fastq](testR2dualmatched.fastq)
+*[testR1unknown.fastq](testR1unknown.fastq)
+*[testR2unknown.fastq](testR2unknown.fastq)
+*[testR1hopped.fastq](testR1hopped.fastq)
+*[testR2hopped.fastq](testR2hopped.fastq)</list>
