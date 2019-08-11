@@ -47,16 +47,17 @@ c) 7304664 indexes were sequenced with an "N" base call. I used n_index.sh to wr
 ```$ /usr/bin/time -v zcat /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz | awk 'NR % 4 == 2' | grep '[N]\+' | wc -l > n_index_count.txt```
 
 2. Algorithm written in pseudocode is available on [demultiplex_algorithm.txt](demultiplex_algorithm.txt).
-<list>Test input files:
-*[testR1index.fastq](testR1index.fastq)
-*[testR2index.fastq](testR2index.fastq)
-*[testR1sequence.fastq](testR1sequence.fastq)
-*[testR2sequence.fastq](testR2sequence.fastq)</list>
 
-<list>Test output files:
-*[testR1dualmatched.fastq](testR1dualmatched.fastq)
-*[testR2dualmatched.fastq](testR2dualmatched.fastq)
-*[testR1unknown.fastq](testR1unknown.fastq)
-*[testR2unknown.fastq](testR2unknown.fastq)
-*[testR1hopped.fastq](testR1hopped.fastq)
-*[testR2hopped.fastq](testR2hopped.fastq)</list>
+Test input files:
+* [testR1index.fastq](testR1index.fastq)
+* [testR2index.fastq](testR2index.fastq)
+* [testR1sequence.fastq](testR1sequence.fastq)
+* [testR2sequence.fastq](testR2sequence.fastq)
+
+Test output files:
+* [testR1dualmatched.fastq](testR1dualmatched.fastq)
+* [testR2dualmatched.fastq](testR2dualmatched.fastq)
+* [testR1unknown.fastq](testR1unknown.fastq)
+* [testR2unknown.fastq](testR2unknown.fastq)
+* [testR1hopped.fastq](testR1hopped.fastq)
+* [testR2hopped.fastq](testR2hopped.fastq)
