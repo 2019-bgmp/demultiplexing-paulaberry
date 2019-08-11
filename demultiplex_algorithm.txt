@@ -1,0 +1,85 @@
+#Algorithm for demultiplexing#
+
+Want: 24 Fastq files with alternating forward and reverse reads
+A file of fastq records that don't match any known indexes
+A file of fastq records that don't make the quality cutoff
+
+def generate_index_dict(indexes, dictionary):
+  """Takes a list of indexes as keys to a dictionary and then generates values for those keys with the reverse complement to match the second read."""
+  Example: input "AAAAA" returns dictionary = {AAAAA: TTTTT}
+  takes a list of indexes, for entry in index generates a reverse complement and puts them into an empty dictionary as a key:value pair.
+
+def convert_phred(character)
+  """Takes an ascii character and converts it to a numerical phred score."""
+  Example: input of "K" is output of "42"
+    return qscore
+
+def average_qscore(line):
+  """Takes a line of quality scores and calculates an average quality score. Returns True if average quality is at or above threshold, False if it is below."""
+  use convert_phred()
+  Example: input of "IJK" has output of True
+  return True or False
+
+def index_match_check(index1_line2, index2_line2):
+  """Takes sequence reads from the index files and returns True if the indexes match, False if they do not."""
+  Example: input of "AAAAA" and "TTTTT" outputs True, input of "CCCCC" and "GGTGG" returns False
+  return True or False
+
+def index_N_check(index1_line2, index2_line2):
+  """Takes sequence reads from the index files and returns True if neither has any N base calls, False otherwise."""
+  Example: input of "AAAAA" and "TTNTT" outputs False, input of "AAAAA" and "TTTTT" outputs True.
+  return True or False
+
+def dual_index(index1, index2, read1, read2)
+  """Takes indices and paired-end reads and adds the index sequences to the headers of both reads"""
+  copy both directly to match the index dictionary key:value pairs
+  return R1_header, R2_header
+
+#create empty dictionary for indexes(keys) and reverse complements(values)
+index_dict = {}
+function: generate_index_dict(indexes.txt, index_dict)
+
+#create files to write fastq sequence reads
+for each key in the index dictionary:
+  create "index_R1.fastq"
+  create "index_R2.fastq"
+create "unknown_R1.fastq" # low quality and unknown
+create "unknown_R2.fastq" # low quality and unknown
+create "hopped_R1.fastq"
+create "hopped_R2.fastq"
+create "runstats.txt"
+
+# Code to move through each file four lines at a time
+  pull out one fastq entry from each file (4 lines each)
+  sequence indexes are appended to both headers in read files as "@Header:yaddayadda:IndexR1:IndexR2"
+  function: dual_index()
+
+# quality filtering
+  function: averageqscore() return True if above quality cutoff
+  function: index_N_check() return True if no N base calls in index
+
+  if average qscore of sequence is below a cutoff or either index entries contain "N" in the second line:
+    R1 sequence entries are appended to "unknown_R1.fastq"
+    R2 sequence entries are appended to "unknown_R2.fastq"
+  else:
+    continue
+
+# dual index check
+  function: index_match_check()
+  look up R1 index sequence in index_dict
+  if the value matches read3 (reverse complement) index sequence:
+    write forward sequence entry to index_R1.fastq
+    write reverse sequence entry to index_R2.fastq
+  else:
+    append forward sequence entry to hopped_R1.fastq
+    append reverse sequence entry to hopped_R2.fastq
+
+# run statistics output
+after demultiplexing, output the following to runstats.txt:
+for each index:
+  how many sequence reads are properly matched and in the R1/R2 files
+  how many sequence reads are index hopped
+
+how many sequence reads were below the quality cut off
+how many total sequence reads were index hopped
+make a dictionary of lists of tuples: key is index, list is set of tuples with the first in tuple being the other index, second in tuple being number of times it was index matched to the key index
