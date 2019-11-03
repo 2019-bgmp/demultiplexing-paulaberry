@@ -9,6 +9,8 @@ The python script only analyzed the quality score of the indices, and used a cut
 
 Totals and percentages are output in the [runstats.txt](runstats.txt) file.
 
+The script took 5:52:55 to go through 363,246,735 reads, which averages to 33.5 reads processed per second.
+
 **Overall Sequencing Run Stats**
 | Total reads | 363246735 |
 | Total unknown/low quality reads | 104584689 (28.79%) |
