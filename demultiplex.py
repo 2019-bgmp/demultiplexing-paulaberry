@@ -4,6 +4,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import argparse
+import os
 
 def get_args():
     """Function to pass in filenames to demultiplex."""
@@ -12,6 +13,8 @@ def get_args():
     getfiles.add_argument("-iR2", "--indexR2", help = "read 2 index fastq file", required = True)
     getfiles.add_argument("-sR1", "--sequenceR1", help = "read 1 sequence fastq file", required = True)
     getfiles.add_argument("-sR2", "--sequenceR2", help = "read 2 sequence fastq file", required = True)
+    getfiles.add_argument("-i", "--indexlist", help = "file containing list of indexes used in the sequencing run", required = True)
+    getfiles.add_argument("-q", "--qualitycutoff", help = "quality score cutoff for indexes", required = True)
     return getfiles.parse_args()
 args = get_args()
 
@@ -19,6 +22,8 @@ R1index = str(args.indexR1)
 R2index = str(args.indexR2)
 R1sequence = str(args.sequenceR1)
 R2sequence = str(args.sequenceR2)
+indices = str(args.indexlist)
+quality_cutoff = int(args.qualitycutoff)
 
 def convert_phred(letter):
     '''A function to convert a Phred 33 score to a quality score value.'''
@@ -36,130 +41,279 @@ def read_length(filename):
             read_length = len(line)
             return int(read_length)
 
-def qscore_means(filename, dictionary):
+def qscore_means(index1_line4, index2_line4):
     '''A function that takes a fastq file, and returns a dictionary of each nucleotide position as keys with values of mean qscore for that position.'''
+    nuc_position = 0
+    index1_qscore = 0
+    index2_qscore = 0
+    for character in index1_line4: # creates running sum of quality score of line
+        index1_qscore = convert_phred(character) + index1_qscore
+    for character in index2_line4:
+        index2_qscore = convert_phred(character) + index2_qscore
+    index1q_mean = index1_qscore / len(index1_line4)
+    index2q_mean = index2_qscore / len(index2_line4)
+    return min(index1q_mean, index2q_mean)
+
+def importindices(indexfile, dictionary):
+    """reads in a text file of a list of indices used in the sequencing run, generates a dictionary of indexes and reverse complements"""
+    f = open(indexfile, "r")
+    complements = {"A":"T", "G":"C", "C":"G", "T":"A", "N":"N"}
+    for line in indexfile:
+        line = line.strip()
+        char_count = 0
+        for char in line:
+            if char_count == 0:
+                dictionary[line] = complements[char]
+            else:
+                dictionary[line] = str(complements[char]) + str(dictionary[line])
+    f.close()
+
+def generate_index_dict(indexes, dictionary):
+    """Takes a list of indexes as keys to a dictionary and then generates values for those keys with the reverse complement to match the second read."""
     line_counter = 0
-    read_counter = 0
-    for line in filename:
-        line_counter = line_counter + 1
-        if line_counter % 4 == 0: # extracts line of quality scores
-            read_counter = read_counter + 1
-            line = line.strip()
-            nuc_position = 0
-            for character in line: # creates running sums in the dictionary
-                nuc_position = nuc_position + 1
-                qscore = convert_phred(character)
-                if nuc_position not in dictionary.keys():
-                    dictionary[nuc_position] = qscore
-                else:
-                    dictionary[nuc_position] = dictionary[nuc_position] + qscore
-    for key in dictionary:
-        dictionary[key] = dictionary[key] / read_counter
+    complements = {"A":"T", "G":"C", "C":"G", "T":"A", "N":"N"}
+    for line in indexes:
+        line = line.strip()
+        revcomp = str("")
+        for char in line:
+            revcomp = str(complements[char]) + str(revcomp)
+        dictionary[line] = str(revcomp)
 
-def create_histogram(dictionary, title, figurename):
-    '''takes a dictionary of nucleotide positions and mean quality scores and returns a histogram.'''
-    x = list(dictionary.keys())
-    y = list(dictionary.values())
-    plt.bar(x, y)
-    #plt.xticks(range(len(dictionary)), list(dictionary.keys()))
-    plt.xlabel("Nucleotide Position")
-    plt.ylabel("Average Quality Score")
-    plt.title(str(title))
-    plt.savefig(figurename + ".png")
+def index_match_check(dictionary, index1_line2, index2_line2):
+  """Takes sequence reads from the index files and returns True if the indexes match, False if they do not.
+  Example: input of "AAAAA" and "TTTTT" outputs True, input of "CCCCC" and "GGTGG" returns False"""
+  if index1_line2 in dictionary:
+      if dictionary[index1_line2] == index2_line2:
+          return True
+      else:
+        return False
+  else:
+      return 0
 
+def index_N_check(index_dict, index1_line2, index2_line2):
+  """Takes sequence reads from the index files and returns False if neither has any N base calls, True otherwise.
+  Example: input of "AAAAA" and "TTNTT" outputs False, input of "AAAAA" and "TTTTT" outputs True.
+  return True or False"""
+  indexsequences = str(index1_line2) + str(index2_line2)
+  if indexsequences.find("N") == -1:
+      return True
+  else:
+      return False
 
+def dual_index(index1, index2, sequence1):
+  """Takes indices and paired-end reads and adds the index sequences to the headers of both reads
+  copy both directly to match the index dictionary key:value pairs
+  return R1_header, R2_header"""
+  new_header = str(sequence1) + "::" + str(index1) + ":" + str(index2)
+  return new_header, new_header
 
-# actual fast q files to process
-#sequence1 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R1_001.fastq.gz", "rt")
-#index1 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz", "rt")
-#sequence2 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R4_001.fastq.gz", "rt")
-#index2 = gzip.open("/projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz", "rt")
-
+# variables for files we are working with
 index1 = gzip.open(R1index, "rt")
 index2 = gzip.open(R2index, "rt")
 sequence1 = gzip.open(R1sequence, "rt")
 sequence2 = gzip.open(R2sequence, "rt")
+index_list = open(indices, "r")
 
-# qscore lists for each file
-sequence1_qscores = {}
-index1_qscores = {}
-sequence2_qscores = {}
-index2_qscores = {}
+# create empty dictionary for indexes(keys) and reverse complements(values)
+index_dict = {}
+generate_index_dict(index_list, index_dict)
+index_list.seek(0)
 
-# populate the dictionaries of mean quality scores
-qscore_means(sequence1, sequence1_qscores)
-qscore_means(index1, index1_qscores)
-qscore_means(sequence2, sequence2_qscores)
-qscore_means(index2, index2_qscores)
+# create empty directories for output files by index
+#path = str(os.getcwd())
+for line in index_list:
+    line = line.strip()
+    path = str(os.getcwd()) + "/" + str(line)
+    try:
+        os.mkdir(path)
+    except OSError:
+        print ("Creation of the directory %s failed" % path)
+    else:
+        print ("Successfully created the directory %s" % path)
+index_list.seek(0)
 
-#print(index1_qscores)
+# create an empty dictionary for indexes(keys) and filenames for barcodes
+# create empty dictionaries for filenames and filehandles
+file_list = {}
+fh_list_R1 = {}
+fh_list_R2 = {}
 
-# create histogram images for each dictionary
-create_histogram(sequence1_qscores, "Sequence 1 Quality Scores Histogram", "seq1_histogram")
-plt.savefig:("sequence1.png")
-plt.close()
+while True:
+    barcode = str(index_list.readline().strip())
+    if barcode == "":
+        break
+    file_list[barcode] = [barcode + "/" + barcode + "_R1.fq", barcode + "/" + barcode + "_R2.fq"]
+    fh_list_R1[barcode] = barcode + "/" + barcode + "_R1"
+    fh_list_R2[barcode] = barcode + "/" + barcode + "_R2"
+index_list.seek(0)
 
-create_histogram(sequence2_qscores, "Sequence 2 Quality Scores Histogram", "seq2_histogram")
-plt.savefig:("sequence2.png")
-plt.close()
+# create empty R1 and R2 FASTQ files for each barcode, leave open
+#for key in file_list:
+    #with open(file_list[key][0], "a+") as fh_list_R1[key]:
+        #continue
+        #fh_list_R1[key].open()
+    #with open(file_list[key][1], "a+") as fh_list_R2[key]:
+        #continue
+        #fh_list_R2[key].open()
 
-create_histogram(index1_qscores, "Index 1 Quality Scores Histogram", "index1_histogram")
-plt.savefig:("index1.png")
-plt.close()
+# open the files we just created
+#for key in fh_list_R1:
+    #filename = str(fh_list_R1[key])
+    #filename.open()
 
-create_histogram(index2_qscores, "Index 2 Quality Scores Histogram", "index2_histogram")
-plt.savefig:("index2.png")
-plt.close()
+#for key in fh_list_R2:
+    #fh_list_R2[key].open()
 
-print("Sequence 1 Histogram Values")
-print("Nucleotide position  Mean quality score")
-s1_counter = 0
-s1_sum = 0
-for key in sequence1_qscores:
-    print(str(key) + "  " + str(sequence1_qscores[key]))
-    s1_sum = s1_sum + sequence1_qscores[key]
-    s1_counter = s1_counter + 1
-s1_mean = s1_sum / s1_counter
-print("Average quality score for Sequence 1: " + str(s1_mean))
-print()
+# create empty files to hold the demultiplexed reads and stats
+unknownR1 = open("unknown_reads_R1.fq","a+")
+unknownR2 = open("unknown_reads_R2.fq","a+")
+indexhoppedR1 = open("hopped_reads_R1.fq","a+")
+indexhoppedR2 = open("hopped_reads_R2.fq","a+")
 
-print("Index 1 Histogram Values")
-print("Nucleotide position  Mean quality score")
-i1_counter = 0
-i1_sum = 0
-for key in index1_qscores:
-    print(str(key) + "  " + str(index1_qscores[key]))
-    i1_sum = i1_sum + index1_qscores[key]
-    i1_counter = i1_counter + 1
-i1_mean = i1_sum / i1_counter
-print("Average quality score for Index 1: " + str(i1_mean))
-print()
 
-print("Sequence 2 Histogram Values")
-print("Nucleotide position  Mean quality score")
-s2_counter = 0
-s2_sum = 0
-for key in sequence2_qscores:
-    print(str(key) + "  " + str(sequence2_qscores[key]))
-    s2_sum = s2_sum + sequence2_qscores[key]
-    s2_counter = s2_counter + 1
-s2_mean = s2_sum / s2_counter
-print("Average quality score for Sequence 2: " + str(s2_mean))
-print()
+# Open 4 files one line at a time, keep count of total sequences
+sequence_count = 0
+unknown_count = 0
+hopped_count = 0
+matched_count = 0
+hopped_dictionary = {}  # empty dictionary to hold number of hopped reads
+matched_dictionary = {} # empty dictionary to hold number of reads per index
+complements = {"A":"T", "G":"C", "C":"G", "T":"A", "N":"N"} # global dictionary to generate reverse complements
 
-print("Index 2 Histogram Values")
-print("Nucleotide position  Mean quality score")
-i2_counter = 0
-i2_sum = 0
-for key in index2_qscores:
-    print(str(key) + "  " + str(index2_qscores[key]))
-    i2_sum = i2_sum + index2_qscores[key]
-    i2_counter = i2_counter + 1
-i2_mean = i2_sum / i2_counter
-print("Average quality score for Index 2: " + str(i2_mean))
-print()
+for line in index_list: # initialize counter dictionaries to 0
+    line = line.strip()
+    hopped_dictionary[line] = 0
+    matched_dictionary[line] = 0
+
+while True:
+    index1_line1 = index1.readline().strip()
+    index1_line2 = index1.readline().strip()
+    index1_line3 = index1.readline().strip()
+    index1_line4 = index1.readline().strip()
+    index2_line1 = index2.readline().strip()
+    index2_line2 = index2.readline().strip()
+    index2_line3 = index2.readline().strip()
+    index2_line4 = index2.readline().strip()
+    sequence1_line1 = sequence1.readline().strip()
+    sequence1_line2 = sequence1.readline().strip()
+    sequence1_line3 = sequence1.readline().strip()
+    sequence1_line4 = sequence1.readline().strip()
+    sequence2_line1 = sequence2.readline().strip()
+    sequence2_line2 = sequence2.readline().strip()
+    sequence2_line3 = sequence2.readline().strip()
+    sequence2_line4 = sequence2.readline().strip()
+
+    if index1_line1 == "": # stop while loop at end of index1 file
+        break
+
+    sequence_count = sequence_count + 1 # increment total sequence counter
+    sequence1_line1, sequence2_line1 = dual_index(index1_line2, index2_line2, sequence1_line1) # make new sequence header
+
+    if index_N_check(index_dict, index1_line2, index2_line2) == False: # check for uncalled bases
+        unknownR1.write(sequence1_line1+"\n")
+        unknownR1.write(sequence1_line2+"\n")
+        unknownR1.write(sequence1_line3+"\n")
+        unknownR1.write(sequence1_line4+"\n")
+        unknownR2.write(sequence2_line1+"\n")
+        unknownR2.write(sequence2_line2+"\n")
+        unknownR2.write(sequence2_line3+"\n")
+        unknownR2.write(sequence2_line4+"\n")
+
+        unknown_count = unknown_count + 1 # increment unknown counter
+
+    elif index_match_check(index_dict, index1_line2, index2_line2) == False:
+        indexhoppedR1.write(sequence1_line1+"\n")
+        indexhoppedR1.write(sequence1_line2+"\n")
+        indexhoppedR1.write(sequence1_line3+"\n")
+        indexhoppedR1.write(sequence1_line4+"\n")
+        if index1_line2 in hopped_dictionary:
+            hopped_dictionary[index1_line2] = hopped_dictionary[index1_line2] + 1
+        else:
+            hopped_dictionary[index1_line2] = 1
+        indexhoppedR2.write(sequence2_line1+"\n")
+        indexhoppedR2.write(sequence2_line2+"\n")
+        indexhoppedR2.write(sequence2_line3+"\n")
+        indexhoppedR2.write(sequence2_line4+"\n")
+        rev_comp = ""
+        for char in index2_line2:
+            rev_comp = complements[char] + rev_comp
+            if rev_comp not in hopped_dictionary:
+                hopped_dictionary[rev_comp] = 1
+            else:
+                hopped_dictionary[rev_comp] = hopped_dictionary[rev_comp] + 1
+
+        hopped_count = hopped_count + 1 # increment hopped index counter
+
+    elif qscore_means(index1_line4, index2_line4) <= quality_cutoff:
+        unknownR1.write(sequence1_line1+"\n")
+        unknownR1.write(sequence1_line2+"\n")
+        unknownR1.write(sequence1_line3+"\n")
+        unknownR1.write(sequence1_line4+"\n")
+        unknownR2.write(sequence2_line1+"\n")
+        unknownR2.write(sequence2_line2+"\n")
+        unknownR2.write(sequence2_line3+"\n")
+        unknownR2.write(sequence2_line4+"\n")
+
+        unknown_count = unknown_count + 1 # increment unknown counter
+
+    elif index_match_check(index_dict, index1_line2, index2_line2) == True: # for correctly matched, high quality index reads
+        R1_file = open(str(file_list[index1_line2][0]), "a+")
+        R1_file.write(sequence1_line1+"\n")
+        R1_file.write(sequence1_line2+"\n")
+        R1_file.write(sequence1_line3+"\n")
+        R1_file.write(sequence1_line4+"\n")
+        R2_file = open(str(file_list[index1_line2][1]), "a+")
+        R2_file.write(sequence2_line1+"\n")
+        R2_file.write(sequence2_line2+"\n")
+        R2_file.write(sequence2_line3+"\n")
+        R2_file.write(sequence2_line4+"\n")
+
+        matched_count = matched_count + 1 # increment total matched counter
+        if index1_line2 in matched_dictionary:
+            matched_dictionary[index1_line2] = matched_dictionary[index1_line2] + 1 # increment index matched counter
+        else:
+            matched_dictionary[index1_line2] = 1
+    else: # anything that doesn't have matched or hopped indices
+        unknownR1.write(sequence1_line1+"\n")
+        unknownR1.write(sequence1_line2+"\n")
+        unknownR1.write(sequence1_line3+"\n")
+        unknownR1.write(sequence1_line4+"\n")
+        unknownR2.write(sequence2_line1+"\n")
+        unknownR2.write(sequence2_line2+"\n")
+        unknownR2.write(sequence2_line3+"\n")
+        unknownR2.write(sequence2_line4+"\n")
+
+        unknown_count = unknown_count + 1 # increment unknown counter
+
+# run statistics output
+with open("runstats.txt", "w+") as runstats:
+    runstats.write("Overall Sequencing Run Stats" + "\n")
+    runstats.write("Total reads: " + str(sequence_count) + "\n")
+    runstats.write("Total unknown/low quality reads: " + str(unknown_count) + " (" + str((int(unknown_count) / int(sequence_count)) * 100) + "%)" + "\n")
+    runstats.write("Total index-hopped reads: " + str(hopped_count) + " (" + str((hopped_count / sequence_count) * 100) + "%)" + "\n")
+    runstats.write("Total matched reads: " + str(matched_count) + " (" + str((matched_count / sequence_count) * 100) + "%)" + "\n")
+    runstats.write("\n")
+    runstats.write("\n")
+    runstats.write("Individual file index quality stats:" + "\n")
+    for key in matched_dictionary:
+        runstats.write(key + ": " + str(matched_dictionary[key]) + " reads (" + str((matched_dictionary[key] / sequence_count) * 100) + "%)" + "\n")
+        if key in hopped_dictionary:
+            runstats.write(key + ": " + str(hopped_dictionary[key]) + " indices hopped." + "\n")
+
+# produce heatmap of hopped indices
+
+
 
 sequence1.close()
 index1.close()
 sequence2.close()
 index2.close()
+index_list.close()
+unknownR1.close()
+unknownR2.close()
+indexhoppedR1.close()
+indexhoppedR2.close()
+runstats.close()
+#for key in file_list:
+    #file_list[key][0].close()
+    #file_list[key][1].close()

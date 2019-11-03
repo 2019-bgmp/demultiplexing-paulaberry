@@ -1,0 +1,23 @@
+	Command being timed: "./demultiplex.py -iR1 /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz -iR2 /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz -sR1 /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R1_001.fastq.gz -sR2 /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R4_001.fastq.gz -i indexlist.txt -q 35"
+	User time (seconds): 13828.69
+	System time (seconds): 5673.24
+	Percent of CPU this job got: 92%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:52:55
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 91552
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2753644
+	Voluntary context switches: 4113326
+	Involuntary context switches: 1135687
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
