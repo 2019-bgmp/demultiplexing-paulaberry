@@ -12,14 +12,17 @@ Totals and percentages are output in the [runstats.txt](runstats.txt) file.
 The script took 5:52:55 to go through 363,246,735 reads, which averages to 33.5 reads processed per second.
 
 **Overall Sequencing Run Stats**
+
+|---------------------------------|--------------------|
 | Total reads | 363246735 |
 | Total unknown/low quality reads | 104584689 (28.79%) |
 | Total index-hopped reads | 27286519 (7.51%) |
 | Total matched reads | 231375527 (63.70%) |
 
 **Percentage of reads from each sample, QS cut off = 35**
+
 | index | number of reads that passed QC | percentage of reads |
-|------------|--------------|--------------|
+|-------|--------------------------------|---------------------|
 | GTAGCGTA | 5861439 | 1.61% |
 | CGATCGAT | 4315853 | 1.19% |
 | GATCAAGG | 4755585 | 1.31% |
@@ -46,8 +49,9 @@ The script took 5:52:55 to go through 363,246,735 reads, which averages to 33.5 
 | AGGATAGC | 6408737 | 1.76% |
 
 **Number of hopped reads from each sample, QS cut off = 35**
+
 | index | number of hopped reads (passed QC)|
-|------------|--------------|
+|-------|-----------------------------------|
 | GTAGCGTA | 485599  |
 | CGATCGAT | 300436  |
 | GATCAAGG | 381425  |
