@@ -19,8 +19,8 @@ b) Histograms:
 Data is contained in [qualityhistograms.out](qualityhistograms.out). The average quality score for each file is used as the cut off.
 
 Scripts used to generate data:<br>
-[qualityhistograms.sh](qualityhistograms.sh) - script with slurm and bash commands to initialize correct python environment and call the python script.<br>
-[qualityhistograms.py](qualityhistograms.py) - python script that performed the statistical analysis on the read quality and generated the histograms.
+[qualityhistograms.sh](/scripts/qualityhistograms.sh) - script with slurm and bash commands to initialize correct python environment and call the python script.<br>
+[qualityhistograms.py](/scripts/qualityhistograms.py) - python script that performed the statistical analysis on the read quality and generated the histograms.
 
 Sequence 1 average quality score cut off: 39.315685332524005
 
@@ -42,9 +42,10 @@ Index 2 average quality score cut off: 34.976062685394815
 ![Index 2 Histogram](/images/index2_histogram.png "Index 2 Histogram")
 
 
-c) 7304664 indexes were sequenced with an "N" base call. I used n_index.sh to wrap the following command in slurm script.
+c) 7304664 indexes were sequenced with an "N" base call. I used [n_index.sh](/scripts/n_index.sh) to wrap the following command in slurm script.
 
-```$ /usr/bin/time -v zcat /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz | awk 'NR % 4 == 2' | grep '[N]\+' | wc -l > n_index_count.txt```
+```$ /usr/bin/time -v zcat /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz /projects/bgmp/shared/2017_sequencing/1294_S1_L008_R3_001.fastq.gz | awk 'NR % 4 == 2' | grep '[N]\+' | wc -l > n_index_count.txt
+```
 
 2. Algorithm written in pseudocode is available on [demultiplex_algorithm.txt](demultiplex_algorithm.txt).
 
